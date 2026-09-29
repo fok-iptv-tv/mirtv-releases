@@ -1,9 +1,14 @@
 {
   "title": "ФОК — Финансовый обзор",
   "handle": "@ФОК.Ю.2",
+  "channel_id": "UCvVTOJxIhvG5uNY1HOSbh3Q",
   "telegram": "https://t.me/FOK_Fin_obzor",
   "pause": 20,
   "feeds": [
-    {"lang": "ru", "title": "Русский", "playlist": ""}
+    {
+      "lang": "ru",
+      "title": "Русский",
+      "playlist": ""
+    }
   ]
 }
