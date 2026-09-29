@@ -308,5 +308,62 @@ def main(out_path):
     if len(channels) < 1000:
         sys.exit("слишком мало каналов — источники недоступны, каталог не публикуется")
 
+# ---------- канал ФОК (YouTube): список обычных видео без Shorts, по плейлистам/языкам ----------
+YT_HDR = {"User-Agent": UA, "Accept-Language": "ru,en;q=0.8"}
+
+def _yt_get(url):
+    req = urllib.request.Request(url, headers=YT_HDR)
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return r.read().decode("utf-8", "replace")
+
+def _yt_feed(query):
+    """Лента YouTube (последние 15): [{id, title, published}] — Shorts отбрасываются."""
+    import xml.etree.ElementTree as ET
+    ns = {"a": "http://www.w3.org/2005/Atom", "yt": "http://www.youtube.com/xml/schemas/2015"}
+    root = ET.fromstring(_yt_get("https://www.youtube.com/feeds/videos.xml?" + query))
+    out = []
+    for e in root.findall("a:entry", ns):
+        vid = e.findtext("yt:videoId", "", ns)
+        link = (e.find("a:link", ns).get("href") if e.find("a:link", ns) is not None else "") or ""
+        if not vid or "/shorts/" in link:
+            continue
+        out.append({"id": vid, "title": e.findtext("a:title", "", ns), "published": e.findtext("a:published", "", ns)})
+    return out
+
+def build_fok(out_path):
+    cfg = json.load(open(os.path.join(HERE, "fok.json"), encoding="utf-8"))
+    cid = cfg.get("channel_id") or ""
+    if not cid:
+        page = _yt_get("https://www.youtube.com/" + urllib.parse.quote(cfg["handle"]))
+        m = re.search(r'"(?:externalId|channelId)":"(UC[A-Za-z0-9_-]{22})"', page) or re.search(r'/channel/(UC[A-Za-z0-9_-]{22})', page)
+        cid = m.group(1) if m else ""
+    if not cid:
+        raise RuntimeError("не найден ID канала ФОК")
+    feeds = []
+    for f in cfg.get("feeds", []):
+        pl = f.get("playlist") or ""
+        try:
+            # без плейлиста — все загрузки канала без Shorts (особый плейлист UULF…)
+            vids = _yt_feed("playlist_id=" + (pl or "UULF" + cid[2:]))
+        except Exception as e:
+            print("ФОК: лента", f.get("lang"), "не прочиталась:", e)
+            vids = []
+            if not pl:
+                try:
+                    vids = _yt_feed("channel_id=" + cid)
+                except Exception:
+                    pass
+        feeds.append({"lang": f.get("lang", ""), "title": f.get("title", ""), "playlist": pl, "videos": vids})
+    res = {"generated": int(time.time()), "title": cfg.get("title", "ФОК"), "channel_id": cid,
+           "youtube": "https://www.youtube.com/" + cfg["handle"], "telegram": cfg.get("telegram", ""),
+           "pause": int(cfg.get("pause", 20)), "feeds": feeds}
+    with open(out_path, "w", encoding="utf-8") as fo:
+        json.dump(res, fo, ensure_ascii=False)
+    print("ФОК:", cid, [(f["lang"], len(f["videos"])) for f in feeds])
+
 if __name__ == "__main__":
     main(sys.argv[1] if len(sys.argv) > 1 else "catalog.json.gz")
+    try:
+        build_fok(os.path.join(os.path.dirname(os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else "catalog.json.gz")), "fok.json"))
+    except Exception as e:
+        print("ФОК: список видео не собран:", e)
