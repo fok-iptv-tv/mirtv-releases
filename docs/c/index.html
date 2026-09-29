@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0A0E16">
+<title>IPTV</title>
+<meta property="og:title" content="IPTV">
+<meta property="og:description" content="TV & radio from around the world">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 108 108'%3E%3Crect width='108' height='108' rx='24' fill='%230E1422'/%3E%3Cpath d='M38 40h32a7 7 0 0 1 7 7v20a7 7 0 0 1-7 7H38a7 7 0 0 1-7-7V47a7 7 0 0 1 7-7z' fill='none' stroke='%232BE7C7' stroke-width='4.5'/%3E%3Cpath d='M50 49l11 8-11 8z' fill='%23FF6A4D'/%3E%3C/svg%3E">
+<style>
+  :root{--bg:#0A0E16;--panel:#121A29;--panel2:#1B2439;--stroke:#242F45;--text:#F4F7FB;--dim:#8493AC;--faint:#56617D;--teal:#2BE7C7;--onteal:#06231D;--coral:#FF6A4D}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  main{max-width:440px;margin:0 auto;padding:40px 20px 32px;min-height:100vh;display:flex;flex-direction:column;align-items:center;text-align:center}
+  .icon{width:96px;height:96px;border-radius:24px;box-shadow:0 10px 40px rgba(43,231,199,.12)}
+  h1{font-size:26px;margin:18px 0 6px;letter-spacing:.2px}
+  .lead{color:var(--dim);margin:0 0 26px}
+  .card{width:100%;background:var(--panel);border:1px solid var(--stroke);border-radius:18px;padding:18px;margin-bottom:14px;text-align:left}
+  .card h2{font-size:15px;margin:0 0 6px}
+  .card p{margin:0;color:var(--dim);font-size:14px}
+  .btn{display:block;width:100%;padding:15px 18px;border-radius:14px;font-weight:700;font-size:16px;text-decoration:none;text-align:center;border:0;cursor:pointer;margin-top:12px}
+  .primary{background:var(--teal);color:var(--onteal)}
+  .ghost{background:var(--panel2);color:var(--text);border:1px solid var(--stroke)}
+  ol{margin:10px 0 0;padding-left:20px;color:var(--dim);font-size:14px}
+  ol li{margin:4px 0}
+  .note{color:var(--faint);font-size:12.5px;margin-top:18px}
+  .ok{color:var(--teal);font-size:13px;margin-top:8px;min-height:18px}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<main>
+  <svg class="icon" viewBox="0 0 108 108" aria-hidden="true">
+    <rect width="108" height="108" rx="24" fill="#0E1422"/>
+    <path d="M38,40 h32 a7,7 0 0 1 7,7 v20 a7,7 0 0 1 -7,7 h-32 a7,7 0 0 1 -7,-7 v-20 a7,7 0 0 1 7,-7 z" fill="none" stroke="#2BE7C7" stroke-width="4.5"/>
+    <path d="M47,80 L61,80" stroke="#2BE7C7" stroke-width="4" stroke-linecap="round"/>
+    <path d="M50,49 L61,57 L50,65 Z" fill="#FF6A4D" stroke="#FF6A4D" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M48.34,32.34 A8,8 0 0 1 59.66,32.34" fill="none" stroke="#2BE7C7" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M44.1,28.1 A14,14 0 0 1 63.9,28.1" fill="none" stroke="#2BE7C7" stroke-opacity=".6" stroke-width="3.5" stroke-linecap="round"/>
+  </svg>
+  <h1 id="title">IPTV</h1>
+  <p class="lead" id="lead"></p>
+
+  <div class="card" id="openCard">
+    <h2 id="openH"></h2>
+    <p id="openP"></p>
+    <a class="btn primary" id="openBtn" href="#"></a>
+  </div>
+
+  <div class="card" id="installCard">
+    <h2 id="instH"></h2>
+    <ol id="steps"></ol>
+    <a class="btn primary" id="installBtn" href="https://github.com/fok-iptv-tv/mirtv-releases/releases/latest"></a>
+    <div class="ok" id="copied"></div>
+  </div>
+
+  <div class="card hide" id="notAndroid"><p id="naP"></p></div>
+  <p class="note" id="note"></p>
+</main>
+<script>
+(function () {
+  var T = {
+    en: { lead: "TV channels and radio from around the world — free, no ads.", leadShare: "Someone shared a TV channel with you.",
+      openH: "Already have IPTV?", openP: "The channel opens right in the app.", open: "Open in IPTV",
+      instH: "Don't have IPTV yet?", install: "Download IPTV for Android", copied: "The channel link is copied — the app will offer to open it.",
+      s1: "Download the file and install it (allow installing from this source).", s2: "Open IPTV — it will offer to open the shared channel.", s3: "Or tap the link you received once more.",
+      na: "IPTV works on Android phones, tablets and TV boxes.", note: "Personal non-commercial app. The link doesn't reveal the stream address." },
+    ru: { lead: "Телеканалы и радио со всего мира — бесплатно и без рекламы.", leadShare: "Вам прислали телеканал.",
+      openH: "IPTV уже установлен?", openP: "Канал откроется прямо в приложении.", open: "Открыть в IPTV",
+      instH: "Ещё нет IPTV?", install: "Скачать IPTV для Android", copied: "Ссылка на канал скопирована — приложение предложит его открыть.",
+      s1: "Скачайте файл и установите его (разрешите установку из этого источника).", s2: "Откройте IPTV — оно предложит открыть присланный канал.", s3: "Или нажмите полученную ссылку ещё раз.",
+      na: "IPTV работает на Android — телефонах, планшетах и ТВ-приставках.", note: "Личное некоммерческое приложение. Ссылка не раскрывает адрес потока." },
+    az: { lead: "Dünyanın hər yerindən TV kanalları və radio — pulsuz və reklamsız.", leadShare: "Sizə TV kanalı göndərilib.",
+      openH: "IPTV artıq quraşdırılıb?", openP: "Kanal birbaşa tətbiqdə açılacaq.", open: "IPTV-də aç",
+      instH: "Hələ IPTV yoxdur?", install: "Android üçün IPTV-ni yüklə", copied: "Kanalın linki kopyalandı — tətbiq onu açmağı təklif edəcək.",
+      s1: "Faylı yükləyin və quraşdırın (bu mənbədən quraşdırmaya icazə verin).", s2: "IPTV-ni açın — göndərilən kanalı açmağı təklif edəcək.", s3: "Və ya aldığınız linkə bir daha basın.",
+      na: "IPTV Android telefon, planşet və TV qutularında işləyir.", note: "Şəxsi qeyri-kommersiya tətbiqi. Link yayımın ünvanını göstərmir." },
+    tr: { lead: "Dünyanın her yerinden TV kanalları ve radyo — ücretsiz, reklamsız.", leadShare: "Size bir TV kanalı gönderildi.",
+      openH: "IPTV zaten yüklü mü?", openP: "Kanal doğrudan uygulamada açılır.", open: "IPTV'de aç",
+      instH: "Henüz IPTV yok mu?", install: "Android için IPTV'yi indir", copied: "Kanal bağlantısı kopyalandı — uygulama açmayı önerecek.",
+      s1: "Dosyayı indirip yükleyin (bu kaynaktan yüklemeye izin verin).", s2: "IPTV'yi açın — gönderilen kanalı açmayı önerecek.", s3: "Ya da aldığınız bağlantıya bir kez daha dokunun.",
+      na: "IPTV Android telefon, tablet ve TV kutularında çalışır.", note: "Kişisel, ticari olmayan uygulama. Bağlantı yayın adresini göstermez." },
+    uk: { lead: "Телеканали й радіо з усього світу — безкоштовно та без реклами.", leadShare: "Вам надіслали телеканал.",
+      openH: "IPTV вже встановлено?", openP: "Канал відкриється просто в застосунку.", open: "Відкрити в IPTV",
+      instH: "Ще немає IPTV?", install: "Завантажити IPTV для Android", copied: "Посилання на канал скопійовано — застосунок запропонує його відкрити.",
+      s1: "Завантажте файл і встановіть його (дозвольте встановлення з цього джерела).", s2: "Відкрийте IPTV — він запропонує відкрити надісланий канал.", s3: "Або натисніть отримане посилання ще раз.",
+      na: "IPTV працює на Android — телефонах, планшетах і ТВ-приставках.", note: "Особистий некомерційний застосунок. Посилання не розкриває адресу потоку." },
+    kk: { lead: "Әлемнің түкпір-түкпірінен телеарналар мен радио — тегін, жарнамасыз.", leadShare: "Сізге телеарна жіберілді.",
+      openH: "IPTV орнатылған ба?", openP: "Арна тікелей қолданбада ашылады.", open: "IPTV-да ашу",
+      instH: "IPTV әлі жоқ па?", install: "Android үшін IPTV жүктеу", copied: "Арна сілтемесі көшірілді — қолданба оны ашуды ұсынады.",
+      s1: "Файлды жүктеп, орнатыңыз (осы көзден орнатуға рұқсат беріңіз).", s2: "IPTV-ны ашыңыз — ол жіберілген арнаны ашуды ұсынады.", s3: "Немесе алған сілтемеңізді қайта басыңыз.",
+      na: "IPTV Android телефондарында, планшеттерде және ТВ-приставкаларда жұмыс істейді.", note: "Жеке коммерциялық емес қолданба. Сілтеме ағын мекенжайын ашпайды." }
+  };
+  var lang = (navigator.language || "en").slice(0, 2).toLowerCase();
+  var t = T[lang] || ((["be","ky","tg","uz","hy","ka","tk"].indexOf(lang) >= 0) ? T.ru : T.en);
+  document.documentElement.lang = lang;
+
+  var token = (location.hash || "").slice(1).replace(/[^A-Za-z0-9_-]/g, "");
+  var hasToken = token.length >= 24;
+  var noapp = /[?&]noapp=1/.test(location.search);
+  var android = /Android/i.test(navigator.userAgent);
+  var self = location.origin + location.pathname;
+  var fallback = self + "?noapp=1#" + token;
+  var intentUrl = "intent://open?t=" + token + "#Intent;scheme=iptvapp;package=az.fuad.mirtv;S.browser_fallback_url=" + encodeURIComponent(fallback) + ";end";
+
+  function $(id) { return document.getElementById(id); }
+  $("lead").textContent = hasToken ? t.leadShare : t.lead;
+  $("openH").textContent = t.openH; $("openP").textContent = t.openP; $("openBtn").textContent = t.open;
+  $("instH").textContent = t.instH; $("installBtn").textContent = t.install; $("note").textContent = t.note;
+  $("naP").textContent = t.na;
+  var steps = hasToken ? [t.s1, t.s2, t.s3] : [t.s1];
+  steps.forEach(function (s) { var li = document.createElement("li"); li.textContent = s; $("steps").appendChild(li); });
+
+  if (!hasToken) $("openCard").classList.add("hide");
+  if (!android) $("notAndroid").classList.remove("hide");
+  // приложения нет (вернулись со ссылки intent) — сначала установка
+  if (noapp) $("installCard").parentNode.insertBefore($("installCard"), $("openCard"));
+
+  $("openBtn").addEventListener("click", function (e) {
+    e.preventDefault();
+    location.href = android ? intentUrl : ("iptvapp://open?t=" + token);
+  });
+  // скачивание: заодно кладём ссылку в буфер — новое приложение при первом запуске предложит открыть канал
+  $("installBtn").addEventListener("click", function () {
+    if (hasToken && navigator.clipboard) {
+      navigator.clipboard.writeText(self.replace(/\?.*$/, "") + "#" + token).then(function () { $("copied").textContent = t.copied; }, function () {});
+    }
+  });
+  // прямая ссылка на последний APK
+  fetch("https://api.github.com/repos/fok-iptv-tv/mirtv-releases/releases/latest")
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var a = (d.assets || []).filter(function (x) { return /\.apk$/i.test(x.name); })[0];
+      if (a) $("installBtn").href = a.browser_download_url;
+    }).catch(function () {});
+  // установлено — сразу в приложение
+  if (hasToken && android && !noapp) setTimeout(function () { location.href = intentUrl; }, 350);
+})();
+</script>
+</body>
+</html>
