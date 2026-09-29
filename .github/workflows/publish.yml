@@ -1,0 +1,53 @@
+name: Публикация
+
+# Выпуски создаёт сам этот репозиторий (встроенный ключ GitHub Actions) — на странице выпуска
+# автором будет «github-actions», а не личный аккаунт. Сборки из iptv-app кладут сюда черновик
+# и файл-заявку publish/request.json; здесь черновик превращается в обычный выпуск.
+on:
+  push:
+    paths: ["publish/request.json"]
+  workflow_dispatch:
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Выпуск от имени github-actions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          R: ${{ github.repository }}
+        run: |
+          set -e
+          python3 - <<'PY' > /tmp/jobs.tsv
+          import json
+          d = json.load(open("publish/request.json"))
+          for j in d.get("jobs", []):
+              print("\t".join([j["from"], j["to"], j.get("title", j["to"]), "1" if j.get("latest") else "0"]))
+          PY
+          while IFS=$'\t' read -r FROM TO TITLE LATEST; do
+            [ -z "$FROM" ] && continue
+            echo "== $FROM → $TO"
+            rm -rf /tmp/a && mkdir -p /tmp/a
+            if ! gh release download "$FROM" --repo "$R" --dir /tmp/a; then echo "нет выпуска $FROM — пропуск"; continue; fi
+            NOTES=$(gh release view "$FROM" --repo "$R" --json body -q .body 2>/dev/null || true)
+            AUTHOR=$(gh release view "$TO" --repo "$R" --json author -q .author.login 2>/dev/null || true)
+            DRAFT=$(gh release view "$TO" --repo "$R" --json isDraft -q .isDraft 2>/dev/null || true)
+            if [ "$AUTHOR" = "github-actions[bot]" ] || [ "$AUTHOR" = "github-actions" ]; then
+              if [ "$DRAFT" != "true" ]; then
+                gh release upload "$TO" /tmp/a/* --repo "$R" --clobber
+              fi
+            else
+              gh release delete "$TO" --repo "$R" -y 2>/dev/null || true
+              if [ "$LATEST" = "1" ]; then L=--latest; else L=--latest=false; fi
+              gh release create "$TO" /tmp/a/* --repo "$R" --title "$TITLE" --notes "$NOTES" --target main $L
+            fi
+            if [ "$FROM" != "$TO" ]; then gh release delete "$FROM" --repo "$R" -y --cleanup-tag 2>/dev/null || true; fi
+          done < /tmp/jobs.tsv

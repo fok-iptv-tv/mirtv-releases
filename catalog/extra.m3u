@@ -1,0 +1,9 @@
+#EXTM3U
+#EXTINF:-1 tvg-id="AzadTV.az" tvg-logo="" group-title="Azerbaijan;General",ATV (Azad TV)
+https://lives.atv.az:5443/ATV_TV_STREAM/streams/atvcanli.m3u8
+#EXTINF:-1 tvg-id="DunyaTV.az" tvg-logo="" group-title="Azerbaijan;General",Dünya TV
+https://stream.dunyatv.az/live/dunyatv.m3u8
+#EXTINF:-1 tvg-id="RealTV.az" tvg-logo="" group-title="Azerbaijan;General",Real TV
+https://str.yodacdn.net/real/playlist.m3u8
+#EXTINF:-1 tvg-id="QafqazTV.az" tvg-logo="" group-title="Azerbaijan;General",Qafqaz TV
+https://str1.yodacdn.net/qafkaz/playlist.m3u8
