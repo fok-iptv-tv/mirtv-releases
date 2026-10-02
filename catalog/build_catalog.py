@@ -429,12 +429,23 @@ def build_fok(out_path):
                 vids = _yt_feed("channel_id=" + cid)
             except Exception:
                 pass
+        from_page = False
         if not vids and not pl:
             try:
                 vids = _yt_page(cid)
+                from_page = bool(vids)
                 print("::notice::ФОК: RSS недоступна — со страницы канала: " + str(len(vids)))
             except Exception as e:
                 print("::notice::ФОК: страница канала не прочиталась: " + repr(e)[:200])
+        if from_page:
+            # со страницы канала точной даты нет: берём известную из прошлого списка (из RSS) или дату из названия
+            known = {v["id"]: v.get("published", "") for v in prev.get(f.get("lang", ""), [])}
+            for v in vids:
+                d = re.search(r"(\d{2})\.(\d{2})\.(\d{4})", v.get("title", ""))
+                if d:
+                    v["published"] = f"{d.group(3)}-{d.group(2)}-{d.group(1)}T00:00:00+00:00"
+                elif known.get(v["id"]):
+                    v["published"] = known[v["id"]]
         if not vids and prev.get(f.get("lang", "")):
             vids = prev[f.get("lang", "")]
             print("ФОК: лента", f.get("lang"), "пустая — оставлен прошлый список")
