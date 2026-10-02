@@ -1,1 +1,1 @@
-{"ts": 1790914862, "jobs": [{"from": "v80", "to": "v80", "title": "IPTV — версия 80", "latest": true}]}
+{"ts": 1790914925, "jobs": [{"from": "fok-next", "to": "catalog", "title": "Каталог каналов", "latest": false}]}
