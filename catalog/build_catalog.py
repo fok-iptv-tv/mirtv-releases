@@ -339,6 +339,16 @@ def build_fok(out_path):
         cid = m.group(1) if m else ""
     if not cid:
         raise RuntimeError("не найден ID канала ФОК")
+    # прошлый опубликованный список: если YouTube сейчас не ответил, лучше старый список, чем пустой
+    prev = {}
+    try:
+        req = urllib.request.Request("https://github.com/fok-iptv-tv/mirtv-releases/releases/download/catalog/fok.json", headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            for pf in json.loads(r.read().decode("utf-8")).get("feeds", []):
+                if pf.get("videos"):
+                    prev[pf.get("lang", "")] = pf["videos"]
+    except Exception as e:
+        print("ФОК: прошлый список не прочитан:", e)
     feeds = []
     for f in cfg.get("feeds", []):
         pl = f.get("playlist") or ""
@@ -353,6 +363,14 @@ def build_fok(out_path):
                     vids = _yt_feed("channel_id=" + cid)
                 except Exception:
                     pass
+        if not vids and not pl:
+            try:
+                vids = _yt_feed("channel_id=" + cid)
+            except Exception:
+                pass
+        if not vids and prev.get(f.get("lang", "")):
+            vids = prev[f.get("lang", "")]
+            print("ФОК: лента", f.get("lang"), "пустая — оставлен прошлый список")
         feeds.append({"lang": f.get("lang", ""), "title": f.get("title", ""), "playlist": pl, "videos": vids})
     res = {"generated": int(time.time()), "title": cfg.get("title", "ФОК"), "channel_id": cid,
            "youtube": "https://www.youtube.com/" + cfg["handle"], "telegram": cfg.get("telegram", ""),
