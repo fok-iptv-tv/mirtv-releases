@@ -345,23 +345,29 @@ def _yt_page(cid):
     """Запасной путь, если лента RSS недоступна: вкладка «Видео» канала (Shorts туда не входят)."""
     page = _yt_get("https://www.youtube.com/channel/" + cid + "/videos?hl=en")
     data = None
-    for mm in re.finditer(r"ytInitialData[\"\']?\]?\s*=\s*", page):
+    # вариант 1: var ytInitialData = '\x7b\x22…' — JSON внутри строки JavaScript с \x-экранированием
+    m = re.search(r"var ytInitialData\s*=\s*'(.*?)';", page, re.S)
+    if m:
         try:
-            data, _ = json.JSONDecoder().raw_decode(page, mm.end())
-            break
-        except Exception:
-            continue
+            raw = re.sub(r"\\x([0-9a-fA-F]{2})", lambda x: "\\u00" + x.group(1), m.group(1)).replace("\\'", "'")
+            data = json.loads(json.loads('"' + raw + '"'))
+        except Exception as e:
+            print("::notice::ФОК: строка ytInitialData не разобрана: " + repr(e)[:150])
+    # вариант 2: var ytInitialData = {…};
     if data is None:
-        print("::notice::ФОК: на странице нет ytInitialData, длина " + str(len(page)) + ", videoId: " + str(page.count("videoId")))
-        for mm in list(re.finditer(r"ytInitialData", page))[:4]:
-            print("::notice::ФОК ctx: " + repr(page[mm.start() - 40: mm.start() + 120]))
-        i = page.find("videoId")
-        print("::notice::ФОК vctx: " + repr(page[i - 150: i + 200]))
+        for mm in re.finditer(r"ytInitialData[\"\']?\]?\s*=\s*(?=\{)", page):
+            try:
+                data, _ = json.JSONDecoder().raw_decode(page, mm.end())
+                break
+            except Exception:
+                continue
+    if data is None:
+        print("::notice::ФОК: на странице нет ytInitialData, длина " + str(len(page)))
         return []
     out, seen = [], set()
     def walk(o):
         if isinstance(o, dict):
-            vr = o.get("videoRenderer") or o.get("gridVideoRenderer")
+            vr = o.get("videoRenderer") or o.get("gridVideoRenderer") or o.get("compactVideoRenderer")
             if isinstance(vr, dict) and vr.get("videoId"):
                 t = vr.get("title", {})
                 title = t.get("simpleText") or "".join(r.get("text", "") for r in t.get("runs", []))
