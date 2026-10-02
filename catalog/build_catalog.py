@@ -353,6 +353,10 @@ def _yt_page(cid):
             continue
     if data is None:
         print("::notice::ФОК: на странице нет ytInitialData, длина " + str(len(page)) + ", videoId: " + str(page.count("videoId")))
+        for mm in list(re.finditer(r"ytInitialData", page))[:4]:
+            print("::notice::ФОК ctx: " + repr(page[mm.start() - 40: mm.start() + 120]))
+        i = page.find("videoId")
+        print("::notice::ФОК vctx: " + repr(page[i - 150: i + 200]))
         return []
     out, seen = [], set()
     def walk(o):
