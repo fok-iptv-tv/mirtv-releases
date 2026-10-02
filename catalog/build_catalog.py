@@ -344,11 +344,16 @@ def _rel_date(txt):
 def _yt_page(cid):
     """Запасной путь, если лента RSS недоступна: вкладка «Видео» канала (Shorts туда не входят)."""
     page = _yt_get("https://www.youtube.com/channel/" + cid + "/videos?hl=en")
-    m = re.search(r"var ytInitialData\s*=\s*(\{.*?\});\s*</script>", page, re.S)
-    if not m:
+    data = None
+    for mm in re.finditer(r"ytInitialData[\"\']?\]?\s*=\s*", page):
+        try:
+            data, _ = json.JSONDecoder().raw_decode(page, mm.end())
+            break
+        except Exception:
+            continue
+    if data is None:
         print("::notice::ФОК: на странице нет ytInitialData, длина " + str(len(page)) + ", videoId: " + str(page.count("videoId")))
         return []
-    data = json.loads(m.group(1))
     out, seen = [], set()
     def walk(o):
         if isinstance(o, dict):
@@ -417,7 +422,7 @@ def build_fok(out_path):
         if not vids and not pl:
             try:
                 vids = _yt_page(cid)
-                print("ФОК: лента RSS недоступна — список взят со страницы канала:", len(vids))
+                print("::notice::ФОК: RSS недоступна — со страницы канала: " + str(len(vids)))
             except Exception as e:
                 print("::notice::ФОК: страница канала не прочиталась: " + repr(e)[:200])
         if not vids and prev.get(f.get("lang", "")):
