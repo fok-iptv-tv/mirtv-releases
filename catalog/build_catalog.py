@@ -330,6 +330,51 @@ def _yt_feed(query):
         out.append({"id": vid, "title": e.findtext("a:title", "", ns), "published": e.findtext("a:published", "", ns)})
     return out
 
+def _rel_date(txt):
+    """«3 days ago» → дата ISO (приблизительно; точная дата и так есть в названии выпуска)."""
+    import datetime
+    m = re.search(r"(\d+)\s*(second|minute|hour|day|week|month|year)", txt or "")
+    now = datetime.datetime.utcnow()
+    if m:
+        n, u = int(m.group(1)), m.group(2)
+        sec = {"second": 1, "minute": 60, "hour": 3600, "day": 86400, "week": 604800, "month": 2592000, "year": 31536000}[u]
+        now -= datetime.timedelta(seconds=n * sec)
+    return now.strftime("%Y-%m-%dT%H:%M:%S+00:00")
+
+def _yt_page(cid):
+    """Запасной путь, если лента RSS недоступна: вкладка «Видео» канала (Shorts туда не входят)."""
+    page = _yt_get("https://www.youtube.com/channel/" + cid + "/videos?hl=en")
+    m = re.search(r"var ytInitialData\s*=\s*(\{.*?\});\s*</script>", page, re.S)
+    if not m:
+        return []
+    data = json.loads(m.group(1))
+    out, seen = [], set()
+    def walk(o):
+        if isinstance(o, dict):
+            vr = o.get("videoRenderer") or o.get("gridVideoRenderer")
+            if isinstance(vr, dict) and vr.get("videoId"):
+                t = vr.get("title", {})
+                title = t.get("simpleText") or "".join(r.get("text", "") for r in t.get("runs", []))
+                if vr["videoId"] not in seen:
+                    seen.add(vr["videoId"])
+                    out.append({"id": vr["videoId"], "title": title, "published": _rel_date((vr.get("publishedTimeText") or {}).get("simpleText", ""))})
+            lv = o.get("lockupViewModel")
+            if isinstance(lv, dict) and lv.get("contentId") and "VIDEO" in str(lv.get("contentType", "")):
+                md = (lv.get("metadata") or {}).get("lockupMetadataViewModel") or {}
+                title = (md.get("title") or {}).get("content", "")
+                rows = json.dumps(md.get("metadata", {}), ensure_ascii=False)
+                ago = re.search(r"\d+\s*\w+ ago", rows)
+                if lv["contentId"] not in seen:
+                    seen.add(lv["contentId"])
+                    out.append({"id": lv["contentId"], "title": title, "published": _rel_date(ago.group(0) if ago else "")})
+            for v in o.values():
+                walk(v)
+        elif isinstance(o, list):
+            for v in o:
+                walk(v)
+    walk(data)
+    return out
+
 def build_fok(out_path):
     cfg = json.load(open(os.path.join(HERE, "fok.json"), encoding="utf-8"))
     cid = cfg.get("channel_id") or ""
@@ -368,6 +413,12 @@ def build_fok(out_path):
                 vids = _yt_feed("channel_id=" + cid)
             except Exception:
                 pass
+        if not vids and not pl:
+            try:
+                vids = _yt_page(cid)
+                print("ФОК: лента RSS недоступна — список взят со страницы канала:", len(vids))
+            except Exception as e:
+                print("ФОК: страница канала не прочиталась:", e)
         if not vids and prev.get(f.get("lang", "")):
             vids = prev[f.get("lang", "")]
             print("ФОК: лента", f.get("lang"), "пустая — оставлен прошлый список")
@@ -377,7 +428,7 @@ def build_fok(out_path):
            "pause": int(cfg.get("pause", 20)), "feeds": feeds}
     with open(out_path, "w", encoding="utf-8") as fo:
         json.dump(res, fo, ensure_ascii=False)
-    print("ФОК:", cid, [(f["lang"], len(f["videos"])) for f in feeds])
+    print("::notice::ФОК: " + ", ".join(f"{f['lang']} {len(f['videos'])}" for f in feeds) + (" · первое: " + feeds[0]["videos"][0]["title"] if feeds and feeds[0]["videos"] else ""))
 
 if __name__ == "__main__":
     main(sys.argv[1] if len(sys.argv) > 1 else "catalog.json.gz")
