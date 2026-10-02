@@ -346,6 +346,7 @@ def _yt_page(cid):
     page = _yt_get("https://www.youtube.com/channel/" + cid + "/videos?hl=en")
     m = re.search(r"var ytInitialData\s*=\s*(\{.*?\});\s*</script>", page, re.S)
     if not m:
+        print("::notice::ФОК: на странице нет ytInitialData, длина " + str(len(page)) + ", videoId: " + str(page.count("videoId")))
         return []
     data = json.loads(m.group(1))
     out, seen = [], set()
@@ -418,7 +419,7 @@ def build_fok(out_path):
                 vids = _yt_page(cid)
                 print("ФОК: лента RSS недоступна — список взят со страницы канала:", len(vids))
             except Exception as e:
-                print("ФОК: страница канала не прочиталась:", e)
+                print("::notice::ФОК: страница канала не прочиталась: " + repr(e)[:200])
         if not vids and prev.get(f.get("lang", "")):
             vids = prev[f.get("lang", "")]
             print("ФОК: лента", f.get("lang"), "пустая — оставлен прошлый список")
