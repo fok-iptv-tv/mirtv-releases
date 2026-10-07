@@ -1,1 +1,1 @@
-{"ts": 1791337661, "jobs": [{"from": "fok-next", "to": "catalog", "title": "Каталог каналов", "latest": false}]}
+{"ts": 1791340047, "jobs": [{"from": "catalog-next", "to": "catalog", "title": "Каталог каналов", "latest": false}]}
